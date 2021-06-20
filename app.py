@@ -1,4 +1,5 @@
 import os
+import json
 import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -7,7 +8,6 @@ from selenium.webdriver.common.touch_actions import TouchActions
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.chrome.options import Options
 
-from update_keywords_thread import UpdateKeywordsThread
 from mail_service import MailService
 
 # from boto.s3.connection import S3Connection
@@ -16,14 +16,12 @@ from mail_service import MailService
 
 class MonitorFacebook():
 
-    def __init__(self, facebook_login, facebook_pass, group_monitoring_url, search_tokens_url):
+    def __init__(self, facebook_login, facebook_pass, group_monitoring_url, tokens):
+        self.group_monitoring_url = group_monitoring_url
         self.facebook_pass = facebook_pass
         self.facebook_login = facebook_login
+        self.tokens = list(map(lambda t: t.lower(), json.loads(tokens)))
         self.mail_service = MailService()
-        self.monitor_group_url = group_monitoring_url
-        seconds = 60
-        self.keywords_update_job = UpdateKeywordsThread(
-            5 * seconds, search_tokens_url)
 
     def format_html_and_highlight_tokens(self, text, highlight_options):
         highlight_options.sort(key=lambda x: x[1])
@@ -43,7 +41,7 @@ class MonitorFacebook():
         <html>
         <body>
             <p>Hey!,<br>
-            <a href="{self.monitor_group_url}">Group link.</a>
+            <a href="{self.group_monitoring_url}">Group link.</a>
             </p>
             <p>{result}<p>
         </body>
@@ -52,8 +50,8 @@ class MonitorFacebook():
 
     def search_tokens(self, text):
         result = []
-        for t in self.keywords_update_job.tokens:
-            idx = text.find(t)
+        for t in self.tokens:
+            idx = text.lower().find(t)
             if idx != -1:
                 result.append((t, idx, len(t)))  # enty starts, and it's length
         result.sort(key=lambda x: x[1])
@@ -97,15 +95,16 @@ class MonitorFacebook():
     def init_driver(self):
         op = Options()
 
-        # chrome_prefs = {}
-        # op.experimental_options["prefs"] = chrome_prefs
-        # op.add_experimental_option("prefs", {
-        #     "profile.default_content_setting_values.notifications": 1,
-        #     "profile.managed_default_content_settings.images": 2,
-        #     "profile.default_content_settings.images": 2
-        # })
+        chrome_prefs = {}
+        op.experimental_options["prefs"] = chrome_prefs
+        op.add_experimental_option("prefs", {
+            "profile.default_content_setting_values.notifications": 1,
+            "profile.managed_default_content_settings.images": 2,
+            "profile.default_content_settings.images": 2
+        })
         op.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
-        op.add_argument("--headless")
+        # op.add_argument("--headless")
+
         # op.add_argument('--disable-dev-shm-usage')
         # op.add_argument('--disable-gpu')
         # op.add_argument("--no-sandbox")
@@ -138,10 +137,9 @@ class MonitorFacebook():
         loginBtn.click()
 
         time.sleep(3)
-        self.driver.get(self.monitor_group_url)
+        self.driver.get(self.group_monitoring_url)
 
     def start(self):
-        self.keywords_update_job.start()
         self.init_driver()
         self.login_and_go_to_monitoring_page()
         # banner = self.driver.find_element_by_id('pagelet_growth_expanding_cta')
@@ -161,7 +159,6 @@ class MonitorFacebook():
                 '//div[@role="feed"]//div[@role="article" and not(ancestor::div[@role="article"])]')
             print("Found articles: " + str(len(articles)))
             for idx, article in enumerate(articles[:3]):
-                # print(self.keywords_update_job.tokens)
                 print(article.location['y'])
                 self.driver.execute_script(
                     f"window.scrollTo(0, {article.location['y']} - 30);")
@@ -172,15 +169,15 @@ class MonitorFacebook():
             self.driver.refresh()
             time.sleep(5)
 
-        self.keywords_update_job.stop()
         self.driver.close()
 
 
 def main():
     FACEBOOK_LOGIN = os.environ.get("FACEBOOK_LOGIN")
     FACEBOOK_PASS = os.environ.get("FACEBOOK_PASS")
-    monitor = MonitorFacebook(FACEBOOK_LOGIN, FACEBOOK_PASS, "https://www.facebook.com/salutcat/",
-                              'https://raw.githubusercontent.com/ljharb/json-file-plus/main/package.json')
+    TOKENS = os.environ.get("TOKENS")
+    monitor = MonitorFacebook(
+        FACEBOOK_LOGIN, FACEBOOK_PASS, "https://www.facebook.com/salutcat/", TOKENS)
     monitor.start()
 
 
