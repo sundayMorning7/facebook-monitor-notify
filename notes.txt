@@ -7,6 +7,6 @@ process text
 
 
 git add .
-git commit -am "remove chrome bin path"
+git commit -am "changed env variables names"
 git push heroku master
 heroku run python app.py

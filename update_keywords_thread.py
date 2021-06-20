@@ -23,28 +23,14 @@ class UpdateKeywordsThread(threading.Thread):
 
     def update_token_keywords(self):
         caller = inspect.getouterframes(inspect.currentframe())[1][3]
-        # print(f"Inside {caller}")
-        # print("Acquiring lock")
         self.idx += 1
         with self.lock:
-            # print("Lock Acquired")
             r = requests.get(self.json_url)
             data = r.json()
-            self.tokens = data["keywords"]
-
-            self.tokens.append('franges')
-            self.tokens.append('Santi i la Marta')
-            self.tokens.append('1962')
-            self.tokens.append('250.000')
+            self.tokens = list(map(lambda k: k.lower()), data["keywords"])
 
             print(self.tokens)
             time.sleep(self.interval_sec)
 
     def stop(self):
         self.cancel = True
-# if __name__ == '__main__':
-#     hello = UpdateKeywordsThread()
-#     print(1)
-#     while True:
-#         time.sleep(1)
-#         print(hello.keywords)

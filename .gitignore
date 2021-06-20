@@ -1,4 +1,6 @@
 # Byte-compiled / optimized / DLL files
+unused/
+facebook_virt/
 __pycache__/
 *.py[cod]
 *$py.class

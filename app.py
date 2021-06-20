@@ -15,12 +15,10 @@ from mail_service import MailService
 
 
 class MonitorFacebook():
-    facebook_login_url = 'https://www.facebook.com/login/device-based/regular/login/?login_attempt=1'
 
-    facebook_login = "mmarikgod@gmail.com"
-    facebook_pass = "pcMsygex84GTo9kpH"
-
-    def __init__(self, group_monitoring_url, search_tokens_url):
+    def __init__(self, facebook_login, facebook_pass, group_monitoring_url, search_tokens_url):
+        self.facebook_pass = facebook_pass
+        self.facebook_login = facebook_login
         self.mail_service = MailService()
         self.monitor_group_url = group_monitoring_url
         seconds = 60
@@ -123,10 +121,12 @@ class MonitorFacebook():
         self.driver.set_window_size(1920, 1080)
 
     def login_and_go_to_monitoring_page(self):
-        self.driver.get(self.facebook_login_url)
+        facebook_login_url = 'https://www.facebook.com/login/device-based/regular/login/?login_attempt=1'
+        self.driver.get(facebook_login_url)
 
         emailField = self.driver.find_element(
             By.ID, 'email')
+
         emailField.send_keys(self.facebook_login)
 
         passwordField = self.driver.find_element(
@@ -177,7 +177,9 @@ class MonitorFacebook():
 
 
 def main():
-    monitor = MonitorFacebook("https://www.facebook.com/salutcat/",
+    FACEBOOK_LOGIN = os.environ.get("FACEBOOK_LOGIN")
+    FACEBOOK_PASS = os.environ.get("FACEBOOK_PASS")
+    monitor = MonitorFacebook(FACEBOOK_LOGIN, FACEBOOK_PASS, "https://www.facebook.com/salutcat/",
                               'https://raw.githubusercontent.com/ljharb/json-file-plus/main/package.json')
     monitor.start()
 
