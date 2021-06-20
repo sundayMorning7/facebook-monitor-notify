@@ -7,6 +7,6 @@ process text
 
 
 git add .
-git commit -am "deleted local chromedriver"
+git commit -am "remove chrome bin path"
 git push heroku master
-heroku python app.py
+heroku run python app.py

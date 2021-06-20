@@ -5,7 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.touch_actions import TouchActions
 from selenium.webdriver.remote.webelement import WebElement
-
+from selenium.webdriver.chrome.options import Options
 
 from update_keywords_thread import UpdateKeywordsThread
 from mail_service import MailService
@@ -97,7 +97,7 @@ class MonitorFacebook():
             pass
 
     def init_driver(self):
-        op = webdriver.ChromeOptions()
+        op = Options()
 
         # chrome_prefs = {}
         # op.experimental_options["prefs"] = chrome_prefs
@@ -106,7 +106,7 @@ class MonitorFacebook():
         #     "profile.managed_default_content_settings.images": 2,
         #     "profile.default_content_settings.images": 2
         # })
-        # op.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+        op.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
         op.add_argument("--headless")
         # op.add_argument('--disable-dev-shm-usage')
         # op.add_argument('--disable-gpu')
@@ -119,7 +119,7 @@ class MonitorFacebook():
         # pprint.pprint(dict(os.environ), width=1)
         # exit(1)
         self.driver = webdriver.Chrome(
-            executable_path=os.environ.get("CHROME_DRIVER_PATH"), chrome_options=op)
+            executable_path=os.environ.get("CHROME_DRIVER_PATH"), options=op)
         self.driver.set_window_size(1920, 1080)
 
     def login_and_go_to_monitoring_page(self):
