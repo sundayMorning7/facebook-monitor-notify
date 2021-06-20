@@ -99,17 +99,20 @@ class MonitorFacebook():
     def init_driver(self):
         op = webdriver.ChromeOptions()
 
-        chrome_prefs = {}
-        op.experimental_options["prefs"] = chrome_prefs
-        op.add_experimental_option("prefs", {
-            "profile.default_content_setting_values.notifications": 1,
-            "profile.managed_default_content_settings.images": 2,
-            "profile.default_content_settings.images": 2
-        })
-        op.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+        # chrome_prefs = {}
+        # op.experimental_options["prefs"] = chrome_prefs
+        # op.add_experimental_option("prefs", {
+        #     "profile.default_content_setting_values.notifications": 1,
+        #     "profile.managed_default_content_settings.images": 2,
+        #     "profile.default_content_settings.images": 2
+        # })
+        # op.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
         op.add_argument("--headless")
-        op.add_argument("--no-sandbox")
-        op.add_argument("--disable-dev-sh-usage")
+        # op.add_argument('--disable-dev-shm-usage')
+        # op.add_argument('--disable-gpu')
+        # op.add_argument("--no-sandbox")
+        # op.add_argument("--disable-dev-sh-usage")
+        # op.add_argument("--remote-debugging-port=9222")
 
         # executable_path="chromedriver.exe"
         # import pprint
