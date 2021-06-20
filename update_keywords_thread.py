@@ -34,6 +34,8 @@ class UpdateKeywordsThread(threading.Thread):
 
             self.tokens.append('franges')
             self.tokens.append('Santi i la Marta')
+            self.tokens.append('1962')
+            self.tokens.append('250.000')
 
             print(self.tokens)
             time.sleep(self.interval_sec)

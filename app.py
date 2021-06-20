@@ -23,9 +23,13 @@ class MonitorFacebook():
     def __init__(self, group_monitoring_url, search_tokens_url):
         self.mail_service = MailService()
         self.monitor_group_url = group_monitoring_url
-        self.keywords_update_job = UpdateKeywordsThread(10, search_tokens_url)
+        seconds = 60
+        self.keywords_update_job = UpdateKeywordsThread(
+            5 * seconds, search_tokens_url)
 
     def format_html_and_highlight_tokens(self, text, highlight_options):
+        highlight_options.sort(key=lambda x: x[1])
+
         result = ""
         p1 = 0
         for token, token_start, token_length in highlight_options:
@@ -34,7 +38,9 @@ class MonitorFacebook():
             formatted = f'<span style="background-color: yellow;">{text[token_start: token_end]}</span>'
             result += start_str + formatted
             p1 = token_end
-
+        result += text[p1:]
+        print('--FORMATTED')
+        print(result)
         return f"""\
         <html>
         <body>
@@ -52,21 +58,27 @@ class MonitorFacebook():
             idx = text.find(t)
             if idx != -1:
                 result.append((t, idx, len(t)))  # enty starts, and it's length
+        result.sort(key=lambda x: x[1])
         return result
 
-    def process_article(self, article: WebElement):
+    def process_article(self, article: WebElement, idx):
         """Checks whether there's a match in article's text with tokens. If yes, then send an email.
 
         Args:
             text (str): [article's text]
         """
         text = self.extract_message(article)
+        if text == None:
+            print("TEXT IS NONE!!!!!!!!!!!" + '-'*20, "ARTICLE: ", idx)
+            return
         found_tokens = self.search_tokens(text)
         if len(found_tokens):
             print(found_tokens)
+
             message = self.format_html_and_highlight_tokens(
                 text, found_tokens)
             tokens_str = ", ".join([t[0] for t in found_tokens])
+            print('emailing')
             self.mail_service.send_emails(text, message, tokens_str)
 
     def extract_message(self, article: WebElement):
@@ -95,7 +107,7 @@ class MonitorFacebook():
             "profile.default_content_settings.images": 2
         })
         op.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
-        # op.add_argument("--headless")
+        op.add_argument("--headless")
         op.add_argument("--no-sandbox")
         op.add_argument("--disable-dev-sh-usage")
 
@@ -105,6 +117,7 @@ class MonitorFacebook():
         # exit(1)
         self.driver = webdriver.Chrome(
             executable_path=os.environ.get("CHROME_DRIVER_PATH"), chrome_options=op)
+        self.driver.set_window_size(1920, 1080)
 
     def login_and_go_to_monitoring_page(self):
         self.driver.get(self.facebook_login_url)
@@ -142,15 +155,16 @@ class MonitorFacebook():
 
             # find all articles on a page, except comments. if articles has an ancestor of article, then it's a comment
             articles = self.driver.find_elements_by_xpath(
-                '//div[@role="feed"]//div[@role="article" and not(ancestor::div[@role="article"])]')[:3]
-            # print("Found articles: " + str(len(articles)))
-            for idx, article in enumerate(articles):
-                print(self.keywords_update_job.tokens)
+                '//div[@role="feed"]//div[@role="article" and not(ancestor::div[@role="article"])]')
+            print("Found articles: " + str(len(articles)))
+            for idx, article in enumerate(articles[:3]):
+                # print(self.keywords_update_job.tokens)
+                print(article.location['y'])
                 self.driver.execute_script(
                     f"window.scrollTo(0, {article.location['y']} - 30);")
                 time.sleep(3)
 
-                self.process_article(article)
+                self.process_article(article, idx)
 
             self.driver.refresh()
             time.sleep(5)
