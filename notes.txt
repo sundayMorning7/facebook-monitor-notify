@@ -4,3 +4,9 @@ monitor 2 first posts
 
     Test 3 links no scroll:
 process text
+
+
+git add .
+git commit -am "deleted local chromedriver"
+git push heroku master
+heroku python app.py
