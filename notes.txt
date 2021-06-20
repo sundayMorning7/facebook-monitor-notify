@@ -1,0 +1,6 @@
+proxies
+deploy. is gui okay on heroku? will it wokk without gui?
+monitor 2 first posts
+
+    Test 3 links no scroll:
+process text
